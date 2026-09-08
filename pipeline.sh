@@ -67,7 +67,7 @@ echo "RESULTADO FINAL:"
 cat "$FINAL_JSON"
 echo "==================================================="
 
-OUTPUT_DIR="../resultMAIN_pipeline"
+OUTPUT_DIR="./tmp_recortados"
 mkdir -p "$OUTPUT_DIR"
 
 ACHOU=$(python3 -c "import sys, json; print(json.load(sys.stdin).get('achou', False))" < "$FINAL_JSON" 2>/dev/null)

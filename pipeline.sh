@@ -19,9 +19,6 @@ echo "==================================================="
 echo "[Pipeline] Iniciando processamento: $IMAGE"
 echo "==================================================="
 
-# Ativa a bolha do Python silenciosamente
-source .venv/bin/activate
-
 # Cria a pasta temporária de forma segura (não apaga se já existir)
 TMP_DIR="./tmp_pipeline"
 mkdir -p "$TMP_DIR"

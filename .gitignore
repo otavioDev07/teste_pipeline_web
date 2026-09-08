@@ -7,7 +7,8 @@ __pycache__/
 venv/
 env/
 
-tmp_pipeline/
+tmp_recortados/
 tmp_uploads/
 resultMAIN_pipeline/
+RDP+HoughProb/detector
 

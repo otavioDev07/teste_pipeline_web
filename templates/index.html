@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Test Bench - Visão Computacional</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-light">
+    <div class="container mt-5">
+      <h2 class="mb-4">Bancada de Testes: Pipeline de Imagens</h2>
+
+      <div class="card shadow-sm p-4 mb-4">
+        <form id="uploadForm">
+          <div class="mb-3">
+            <label class="form-label">URL do Webhook (Make.com)</label>
+            <input type="url" class="form-control" id="webhook" required />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Token de Autenticação</label>
+            <input type="password" class="form-control" id="token" required />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label"
+              >Imagens para Teste (Selecione Várias)</label
+            >
+            <!-- O atributo 'multiple' é o que permite selecionar o lote no Finder! -->
+            <input
+              type="file"
+              class="form-control"
+              id="imagens"
+              accept="image/*"
+              multiple
+              required
+            />
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100">
+            Rodar Pipeline
+          </button>
+        </form>
+      </div>
+
+      <!-- Painel de Resultados (Ficará oculto até o JS atualizar) -->
+      <div id="resultado" style="display: none">
+        <h4>Resultados do Lote:</h4>
+        <div class="alert alert-success" id="listaAceitas"></div>
+        <div class="alert alert-danger" id="listaNegadas"></div>
+      </div>
+    </div>
+
+    <script>
+      document
+        .getElementById("uploadForm")
+        .addEventListener("submit", async function (evento) {
+          evento.preventDefault();
+          const botao = this.querySelector('button[type="submit"]');
+          botao.innerText = "Processando... aguarde";
+          botao.disabled = true;
+
+          const inputWebhook = document.getElementById("webhook").value;
+          const inputToken = document.getElementById("token").value;
+          const inputImagens = document.getElementById("imagens").files;
+
+          const pacote = new FormData();
+          pacote.append("webhook_url", inputWebhook);
+          pacote.append("token", inputToken);
+
+          for (let i = 0; i < inputImagens.length; i++) {
+            pacote.append("imagens", inputImagens[i]);
+          }
+
+          try {
+            const resposta = await fetch("/upload/", {
+              method: "POST",
+              body: pacote,
+            });
+
+            const dados = await resposta.json();
+
+            const htmlAceitas = dados.aceitas
+              .map(
+                (nome) => `
+                    <div class="d-inline-block m-2 text-center">
+                        <img src="/imagem/aceita/${nome}" class="img-thumbnail border-success" style="height: 150px; width: auto; object-fit: contain;">
+                        <br><small class="text-muted">${nome}</small>
+                    </div>
+                `,
+              )
+              .join("");
+
+            const htmlNegadas = dados.negadas
+              .map(
+                (nome) => `
+                    <div class="d-inline-block m-2 text-center">
+                        <img src="/imagem/negada/${nome}" class="img-thumbnail border-danger" style="height: 150px; width: auto; object-fit: contain;">
+                        <br><small class="text-muted">${nome}</small>
+                    </div>
+                `,
+              )
+              .join("");
+
+            document.getElementById("resultado").style.display = "block";
+
+            document.getElementById("listaAceitas").innerHTML =
+              `<h5>Aceitas:</h5> ${htmlAceitas || '<span class="text-muted">Nenhuma imagem aceita.</span>'}`;
+            document.getElementById("listaNegadas").innerHTML =
+              `<h5>Rejeitadas:</h5> ${htmlNegadas || '<span class="text-muted">Nenhuma imagem rejeitada.</span>'}`;
+          } catch (erro) {
+            alert("Erro ao comunicar com o servidor!");
+            console.error(erro);
+          } finally {
+            botao.innerText = "Enviar";
+            botao.disabled = false;
+          }
+        });
+    </script>
+  </body>
+</html>

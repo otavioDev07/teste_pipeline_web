@@ -3,6 +3,7 @@ import os
 from werkzeug.utils import secure_filename
 import subprocess
 import requests
+from PIL import Image 
 
 app = Flask(__name__)
 
@@ -30,13 +31,14 @@ def processar_lote():
 
         processo = subprocess.run(["./pipeline.sh", caminho], capture_output=True, text=True)
         saida = processo.stdout
-        
-        print(f"\n--- DEBUG DA IMAGEM: {nome_seguro} ---")
-        print("SAÍDA NORMAL (STDOUT):")
-        print(saida)
-        print("ERROS (STDERR):")
-        print(processo.stderr)
-        print("--------------------------------------\n")
+        try:
+            with Image.open(caminho) as imagem_pil:
+                max_size = (1200, 1200) # Dimensão máxima segura
+                imagem_pil.thumbnail(max_size, Image.Resampling.LANCZOS)
+                # Salva por cima do arquivo original já otimizado e mais leve
+                imagem_pil.save(caminho, optimize=True, quality=85)
+        except Exception as e:
+            print(f"Erro ao redimensionar {nome_seguro}: {e}")
 
         if '[5/5] Executando recorte' in saida:
             aceitas.append(nome_seguro)
